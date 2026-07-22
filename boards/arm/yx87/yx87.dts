@@ -5,7 +5,7 @@
  */
 
 /dts-v1/;
-#include "../nice_nano/nice_nano.dtsi"
+#include "nice_nano.dtsi"   // 已改为本地包含
 
 / {
     chosen {
@@ -14,7 +14,6 @@
         zmk,matrix_transform = &default_transform;
     };
 
-    // 矩阵变换：6行 × 15列（所有位置填满，无物理键的位置用 &kp NONE）
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <15>;
@@ -29,7 +28,6 @@
         >;
     };
 
-    // 矩阵扫描定义（你之前提供）
     kscan0: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         label = "KSCAN";
@@ -63,20 +61,17 @@
             ;
     };
 
-    // 外部电源控制（nice!nano v2 兼容）
     EXT_POWER {
         compatible = "zmk,ext-power-generic";
         control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
         init-delay-ms = <50>;
     };
 
-    // 电池检测（内部 VDDH）
     vbatt: vbatt {
         compatible = "zmk,battery-nrf-vddh";
     };
 };
 
-// I2C 总线及 PCF8574 扩展芯片（地址 0x20，请按实物修改）
 &i2c0 {
     status = "okay";
     pcf8574: gpio@20 {
