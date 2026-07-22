@@ -5,7 +5,8 @@
  */
 
 /dts-v1/;
-#include "nice_nano.dtsi"   // 已改为本地包含
+#include "nice_nano.dtsi"
+#include <dt-bindings/zmk/matrix_transform.h>
 
 / {
     chosen {
