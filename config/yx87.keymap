@@ -14,21 +14,17 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            // 完全按照您指定的键位布局（6行 × 15列）
-            // 注：将右 Ctrl 改为 mo 1 用于层切换
             bindings = <
                 &kp ESC    &kp F1   &kp F2   &kp F3   &kp F4   &kp F5   &kp F6   &kp F7   &kp F8   &kp F9   &kp F10  &kp F11  &kp F12  &kp PSCRN &kp SLCK
                 &kp GRAVE  &kp N1   &kp N2   &kp N3   &kp N4   &kp N5   &kp N6   &kp N7   &kp N8   &kp N9   &kp N0   &kp MINUS &kp EQUAL &kp BSPC  &kp INS
                 &kp TAB    &kp Q    &kp W    &kp E    &kp R    &kp T    &kp Y    &kp U    &kp I    &kp O    &kp P    &kp LBKT &kp RBKT &kp BSLH &kp DEL
-                &kp CAPS   &kp A    &kp S    &kp D    &kp F    &kp G    &kp H    &kp J    &kp K    &kp L    &kp SEMI &kp SQT  &kp RET  &kp NONE &kp PAUSE_BREAK
+                &kp CAPS   &kp A    &kp S    &kp D    &kp F    &kp G    &kp H    &kp J    &kp K    &kp L    &kp SEMI &kp SQT  &kp RET  &kp NONE &kp PAUSE
                 &kp LSHFT  &kp Z    &kp X    &kp C    &kp V    &kp B    &kp N    &kp M    &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT &kp NONE &kp NONE &kp NONE
                 &kp LCTRL  &kp LGUI &kp LALT &kp NONE &kp NONE &kp NONE &kp SPACE &kp NONE &kp NONE &kp NONE &kp RALT &mo 1    &kp NONE &kp NONE &kp NONE
             >;
         };
 
         raise {
-            // 功能层（按住 mo 1 激活）
-            // 提供方向键（WASD）、RGB/背光调节、蓝牙切换、音量控制等
             bindings = <
                 &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans
                 &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &trans &bl BL_TOG &rgb_ug RGB_TOG

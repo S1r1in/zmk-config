@@ -1,0 +1,10 @@
+file_format: "1"
+id: yx87
+name: yx87
+type: board
+arch: arm
+outputs:
+  - usb
+  - ble
+url: https://example.com/yx87
+exposes: [pro_micro]
