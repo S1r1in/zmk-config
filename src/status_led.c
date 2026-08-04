@@ -66,7 +66,7 @@ static void chrg_poll_work_handler(struct k_work *work) {
         status_led_apply();
     }
 
-    k_work_schedule_delayable(&chrg_poll_work, CHRG_POLL_PERIOD_MS);
+    k_work_schedule(&chrg_poll_work, CHRG_POLL_PERIOD_MS);
 }
 
 static int hid_indicators_cb(const zmk_event_t *eh) {
@@ -104,7 +104,7 @@ static int status_led_init(void) {
     zmk_rgb_underglow_select_effect(0);
 
     k_work_init_delayable(&chrg_poll_work, chrg_poll_work_handler);
-    k_work_schedule_delayable(&chrg_poll_work, K_SECONDS(1));
+    k_work_schedule(&chrg_poll_work, K_SECONDS(1));
 
     return 0;
 }
