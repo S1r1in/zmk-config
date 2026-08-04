@@ -1,20 +1,28 @@
 /*
  * yx87 status LED controller
  *
- * Drives a single WS2812B LED (data on P0.08, via SPI1 MOSI) as a status
- * indicator:
+ * Drives two WS2812-style chains:
+ *   - led_strip  (P0.08, SPI1 MOSI): single T80 status LED
+ *   - led_strip0 (P0.06, SPI0 MOSI): 81 per-key underglow LEDs
+ *     (Kailh socket LEDs, daisy-chained)
+ *
+ * Status colors (both chains, highest priority first):
  *   - Caps Lock on   -> blue
  *   - Charging       -> green  (CHRG/STAT signal on P0.13, active low)
  *   - Battery < 20%  -> red
  *   - otherwise      -> off
  *
- * Priority (highest first): low battery > charging > caps lock.
+ * Note: BQ24075 #CHG is not wired to the MCU yet; P0.13 reads POWER_PIN
+ * (power switch sense). Charging detection is kept for when #CHG is
+ * fly-wired - flip CHRG_PIN/polarity then.
  */
 
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/led_strip.h>
 #include <zephyr/logging/log.h>
+#include <string.h>
 
 #include <zmk/event_manager.h>
 #include <zmk/events/hid_indicators_changed.h>
@@ -33,27 +41,75 @@ LOG_MODULE_REGISTER(status_led, LOG_LEVEL_INF);
 #define LOW_BATTERY_PCT 20
 #define CHRG_POLL_PERIOD_MS K_SECONDS(2)
 
+/* Per-key underglow chain (81 LEDs on P0.06) */
+#define STRIP0_DEV DEVICE_DT_GET(DT_NODELABEL(led_strip0))
+#define STRIP0_LEN 81
+
 static bool caps_lock_on;
 static bool charging;
 static uint8_t battery_level = 100;
 
 static struct k_work_delayable chrg_poll_work;
 
+static void underglow_set_all(struct led_rgb *px, uint32_t len, uint8_t h, uint8_t s, uint8_t b) {
+    /* Convert HSB to RGB (simple, good enough for status colors) */
+    uint8_t region = h / 60;
+    uint8_t f = (h % 60) * 255 / 60;
+    uint8_t p = b * (255 - s) / 255;
+    uint8_t q = b * (255 - (s * f) / 255) / 255;
+    uint8_t t = b * (255 - (s * (255 - f)) / 255) / 255;
+    uint8_t r, g, bl;
+    switch (region) {
+    case 0: r = b; g = t; bl = p; break;
+    case 1: r = q; g = b; bl = p; break;
+    case 2: r = p; g = b; bl = t; break;
+    case 3: r = p; g = q; bl = b; break;
+    case 4: r = t; g = p; bl = b; break;
+    default: r = b; g = p; bl = q; break;
+    }
+    for (uint32_t i = 0; i < len; i++) {
+        px[i].r = r;
+        px[i].g = g;
+        px[i].b = bl;
+    }
+}
+
 static void status_led_apply(void) {
+    uint8_t h = 0, s = 100, b = 40;
+    bool on = false;
+
     if (battery_level < LOW_BATTERY_PCT) {
         /* Low battery: solid red */
-        zmk_rgb_underglow_on();
-        zmk_rgb_underglow_set_hsb((struct zmk_led_hsb){.h = 0, .s = 100, .b = 40});
+        h = 0;
+        on = true;
     } else if (charging) {
         /* Charging: solid green */
-        zmk_rgb_underglow_on();
-        zmk_rgb_underglow_set_hsb((struct zmk_led_hsb){.h = 90, .s = 100, .b = 40});
+        h = 90;
+        on = true;
     } else if (caps_lock_on) {
         /* Caps lock: solid blue */
+        h = 210;
+        on = true;
+    }
+
+    /* T80 status LED via ZMK underglow API */
+    if (on) {
         zmk_rgb_underglow_on();
-        zmk_rgb_underglow_set_hsb((struct zmk_led_hsb){.h = 210, .s = 100, .b = 40});
+        zmk_rgb_underglow_set_hsb((struct zmk_led_hsb){.h = h, .s = s, .b = b});
     } else {
         zmk_rgb_underglow_off();
+    }
+
+    /* 81 per-key LEDs via raw LED strip API */
+    static struct led_rgb px[STRIP0_LEN];
+    if (device_is_ready(STRIP0_DEV)) {
+        if (on) {
+            /* Dimmer for per-key chain to avoid glare */
+            underglow_set_all(px, STRIP0_LEN, h, s, 20);
+        } else {
+            memset(px, 0, sizeof(px));
+        }
+        led_strip_update_rgb(STRIP0_DEV, px, STRIP0_LEN);
     }
 }
 
