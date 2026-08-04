@@ -28,3 +28,9 @@ CONFIG_ZMK_USB=y
 CONFIG_ZMK_RGB_UNDERGLOW=y
 CONFIG_ZMK_HID_INDICATORS=y
 CONFIG_ZMK_BATTERY_REPORTING=y
+
+# WS2812B is powered directly from 5V (no switched ext-power rail).
+# ZMK defaults these to y (Kconfig.defaults); disable them or the build
+# fails on the missing zmk,ext-power-generic node (P0.13 is the CHRG input).
+CONFIG_ZMK_EXT_POWER=n
+CONFIG_ZMK_RGB_UNDERGLOW_EXT_POWER=n
