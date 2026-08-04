@@ -17,11 +17,6 @@
         compatible = "zmk,battery-nrf-vddh";
     };
 
-    chrg_status: chrg_status {
-        compatible = "yx87,chrg-status";
-        status-gpios = <&gpio0 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-    };
-
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <15>;

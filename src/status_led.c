@@ -23,9 +23,9 @@
 
 LOG_MODULE_REGISTER(status_led, LOG_LEVEL_INF);
 
-#define CHRG_NODE DT_NODELABEL(chrg_status)
-
-static const struct gpio_dt_spec chrg_gpio = GPIO_DT_SPEC_GET(CHRG_NODE, status_gpios);
+/* CHRG/STAT line on P0.13: open-drain, active low (low = charging) */
+#define CHRG_DEV DEVICE_DT_GET(DT_NODELABEL(gpio0))
+#define CHRG_PIN 13
 
 /* USB HID LED report bitmask: bit 1 = Caps Lock */
 #define HID_LED_CAPS_LOCK 0x02
@@ -58,11 +58,11 @@ static void status_led_apply(void) {
 }
 
 static void chrg_poll_work_handler(struct k_work *work) {
-    int val = gpio_pin_get_dt(&chrg_gpio);
+    int val = gpio_pin_get(CHRG_DEV, CHRG_PIN);
 
     if (val >= 0) {
-        /* GPIO_ACTIVE_LOW: logical 1 means the CHRG/STAT line is asserted */
-        charging = (val == 1);
+        /* Active-low CHRG line: 0 = charging */
+        charging = (val == 0);
         status_led_apply();
     }
 
@@ -94,10 +94,10 @@ ZMK_LISTENER(status_led_battery, battery_cb);
 ZMK_SUBSCRIPTION(status_led_battery, zmk_battery_state_changed);
 
 static int status_led_init(void) {
-    if (!gpio_is_ready_dt(&chrg_gpio)) {
-        LOG_WRN("chrg_status GPIO not ready");
+    if (!device_is_ready(CHRG_DEV)) {
+        LOG_WRN("gpio0 not ready");
     } else {
-        gpio_pin_configure_dt(&chrg_gpio, GPIO_INPUT);
+        gpio_pin_configure(CHRG_DEV, CHRG_PIN, GPIO_INPUT | GPIO_PULL_UP);
     }
 
     /* Use the solid effect so status colors are exact */
