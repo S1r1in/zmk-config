@@ -27,6 +27,8 @@
 #include <zmk/event_manager.h>
 #include <zmk/events/hid_indicators_changed.h>
 #include <zmk/events/battery_state_changed.h>
+#include <zmk/events/usb_conn_state_changed.h>
+#include <zmk/usb.h>
 #include <zmk/rgb_underglow.h>
 
 LOG_MODULE_REGISTER(status_led, LOG_LEVEL_INF);
@@ -47,6 +49,7 @@ LOG_MODULE_REGISTER(status_led, LOG_LEVEL_INF);
 
 static bool caps_lock_on;
 static bool charging;
+static bool usb_connected;
 static uint8_t battery_level = 100;
 
 static struct k_work_delayable chrg_poll_work;
@@ -79,12 +82,17 @@ static void status_led_apply(void) {
     bool on = false;
 
     if (battery_level < LOW_BATTERY_PCT) {
-        /* Low battery: solid red */
+        /* Low battery: solid red (highest priority) */
         h = 0;
         on = true;
-    } else if (charging) {
-        /* Charging: solid green */
-        h = 90;
+    } else if (usb_connected) {
+        /* Charging inferred from USB connection (#CHG not wired to MCU):
+         * full -> cyan, charging -> green */
+        if (battery_level >= 100) {
+            h = 180; /* charged: cyan */
+        } else {
+            h = 90; /* charging: green */
+        }
         on = true;
     } else if (caps_lock_on) {
         /* Caps lock: solid blue */
@@ -148,6 +156,18 @@ static int battery_cb(const zmk_event_t *eh) {
 
 ZMK_LISTENER(status_led_battery, battery_cb);
 ZMK_SUBSCRIPTION(status_led_battery, zmk_battery_state_changed);
+
+static int usb_conn_cb(const zmk_event_t *eh) {
+    const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
+
+    usb_connected = (ev->conn_state != ZMK_USB_CONN_NONE);
+    status_led_apply();
+
+    return ZMK_EV_EVENT_HANDLED;
+}
+
+ZMK_LISTENER(status_led_usb, usb_conn_cb);
+ZMK_SUBSCRIPTION(status_led_usb, zmk_usb_conn_state_changed);
 
 static int status_led_init(void) {
     if (!device_is_ready(CHRG_DEV)) {
