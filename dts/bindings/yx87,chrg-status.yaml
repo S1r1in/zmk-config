@@ -1,0 +1,13 @@
+compatible: "yx87,chrg-status"
+
+description: |
+  Charger status input (CHRG/STAT line). Active-low: asserted when the
+  battery is charging. Pull-up enabled so an open-drain CHRG output reads
+  as "not charging" when idle.
+
+properties:
+  status-gpios:
+    type: phandle-array
+    required: true
+    description: |
+      GPIO connected to the charger CHRG/STAT output, with flags.
