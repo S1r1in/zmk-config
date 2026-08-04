@@ -34,8 +34,6 @@ CONFIG_ZMK_BATTERY_REPORTING=y
 # fails on the missing zmk,ext-power-generic node (P0.13 is the CHRG input).
 CONFIG_ZMK_EXT_POWER=n
 CONFIG_ZMK_RGB_UNDERGLOW_EXT_POWER=n
-# yx87 has no zmk,ext-power-generic node: disable ZMK's default
-# "underglow controls ext power" coupling (would break the build).
-CONFIG_ZMK_RGB_UNDERGLOW_EXT_POWER=n
+
 # Start underglow off; status_led.c turns it on only when needed.
 CONFIG_ZMK_RGB_UNDERGLOW_ON_START=n
