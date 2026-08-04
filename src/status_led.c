@@ -109,4 +109,4 @@ static int status_led_init(void) {
     return 0;
 }
 
-SYS_INIT(status_led_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY + 5);
+SYS_INIT(status_led_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
