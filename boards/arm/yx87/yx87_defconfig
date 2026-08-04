@@ -19,6 +19,10 @@ CONFIG_GPIO_PCF8574=y
 # UART RX would claim P0.08, which is the WS2812 data line - keep serial off
 CONFIG_SERIAL=n
 
+# DCDC disabled on purpose: E73 module VDH/DCH pins are not wired for
+# DCDC (no external inductor) - stay in plain LDO mode.
+CONFIG_NRF_REGULATOR=n
+
 CONFIG_USE_DT_CODE_PARTITION=y
 CONFIG_BUILD_OUTPUT_UF2=y
 
