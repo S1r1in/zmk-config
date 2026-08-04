@@ -1,3 +1,5 @@
+name: zmk-keyboard-yx87
 build:
+  cmake: .
   settings:
     board_root: .

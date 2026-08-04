@@ -1,11 +1,25 @@
 /dts-v1/;
 #include "nice_nano.dtsi"
 #include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/led/led.h>
+#include <dt-bindings/pinctrl/nrf-pinctrl.h>
 
 / {
     chosen {
         zmk,kscan = &kscan0;
         zmk,matrix_transform = &default_transform;
+        zmk,battery = &vbatt;
+        zmk,underglow = &led_strip;
+    };
+
+    vbatt: vbatt {
+        compatible = "zmk,battery-nrf-vddh";
+    };
+
+    chrg_status: chrg_status {
+        compatible = "yx87,chrg-status";
+        status-gpios = <&gpio0 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
     };
 
     default_transform: keymap_transform_0 {
@@ -64,5 +78,35 @@
         gpio-controller;
         #gpio-cells = <2>;
         ngpios = <8>;
+    };
+};
+
+&spi1 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi1_ws2812>;
+    pinctrl-1 = <&spi1_ws2812_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    led_strip: ws2812@0 {
+        compatible = "worldsemi,ws2812-spi";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        chain-length = <1>;
+        color-mapping = <LED_COLOR_IDX_GREEN LED_COLOR_IDX_RED LED_COLOR_IDX_BLUE>;
+    };
+};
+
+&pinctrl {
+    spi1_ws2812: spi1_ws2812 {
+        group1 {
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 8)>;
+        };
+    };
+    spi1_ws2812_sleep: spi1_ws2812_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 8)>;
+            low-power-enable;
+        };
     };
 };
