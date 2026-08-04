@@ -11,6 +11,17 @@ CONFIG_PINCTRL=y
 # enable GPIO
 CONFIG_GPIO=y
 
+# Matrix columns 7-14 live on a PCF8574 I2C GPIO expander
+# (I2C: SCL=P0.23, SDA=P0.07 per PCB)
+CONFIG_I2C=y
+CONFIG_PCF8574=y
+
+# NFC pins P0.30/P0.31 are used as matrix columns 4/5
+CONFIG_NFCT_PINS_AS_GPIOS=y
+
+# UART RX would claim P0.08, which is the WS2812 data line - keep serial off
+CONFIG_SERIAL=n
+
 CONFIG_USE_DT_CODE_PARTITION=y
 CONFIG_BUILD_OUTPUT_UF2=y
 
