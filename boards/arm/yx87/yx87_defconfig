@@ -52,3 +52,11 @@ CONFIG_ZMK_RGB_UNDERGLOW_EXT_POWER=n
 
 # Start underglow off; status_led.c turns it on only when needed.
 CONFIG_ZMK_RGB_UNDERGLOW_ON_START=n
+
+# --- RTT debug logging (bringup) ---
+CONFIG_USE_SEGGER_RTT=y
+CONFIG_LOG_BACKEND_RTT=y
+CONFIG_LOG_BACKEND_RTT_MODE_DROP=y
+CONFIG_LOG_DEFAULT_LEVEL=3
+CONFIG_ZMK_BLE=n
+CONFIG_BT=n
