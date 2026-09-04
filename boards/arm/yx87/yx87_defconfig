@@ -2,61 +2,33 @@ CONFIG_SOC_SERIES_NRF52X=y
 CONFIG_SOC_NRF52840_QIAA=y
 CONFIG_BOARD_YX87=y
 
-# Enable MPU
 CONFIG_ARM_MPU=y
-
-# Use pinctrl
 CONFIG_PINCTRL=y
-
-# enable GPIO
 CONFIG_GPIO=y
 
 # Matrix columns 7-14 live on a PCF8574 I2C GPIO expander
-# (I2C: SCL=P0.23, SDA=P0.07 per PCB)
 CONFIG_I2C=y
 CONFIG_GPIO_PCF8574=y
 
-# UART RX would claim P0.08, which is the WS2812 data line - keep serial off
+# UART RX would claim P0.08 (WS2812 data) - keep serial off
 CONFIG_SERIAL=n
-
-# DCDC stays disabled on purpose: E73 module VDH/DCH pins are not wired for
-# DCDC (no external inductor), so the build has no regulator/DCDC config at
-# all - the chip runs in plain LDO mode. Do NOT add NRF_DCDC/NRF_REGULATOR.
 
 CONFIG_USE_DT_CODE_PARTITION=y
 CONFIG_BUILD_OUTPUT_UF2=y
 
 CONFIG_MPU_ALLOW_FLASH_WRITE=y
-CONFIG_NVS=y
-CONFIG_SETTINGS_NVS=y
-CONFIG_FLASH=y
-CONFIG_FLASH_PAGE_LAYOUT=y
-CONFIG_FLASH_MAP=y
 
-CONFIG_ZMK_BLE=y
-CONFIG_ZMK_USB=y
+# ---- PURE USB KEYBOARD BRINGUP (all extras disabled) ----
+CONFIG_ZMK_BLE=n
+CONFIG_BT=n
+CONFIG_SETTINGS=n
+CONFIG_NVS=n
+CONFIG_ZMK_RGB_UNDERGLOW=n
+CONFIG_ZMK_BATTERY_REPORTING=n
+CONFIG_ZMK_HID_INDICATORS=n
 
-# Status LEDs: WS2812B on P0.08 (T80 status LED) + P0.06 (81 per-key chain)
-CONFIG_ZMK_RGB_UNDERGLOW=y
-CONFIG_WS2812_STRIP=y
-CONFIG_WS2812_STRIP_SPI=y
-CONFIG_LED_STRIP=y
-CONFIG_ZMK_HID_INDICATORS=y
-CONFIG_ZMK_BATTERY_REPORTING=y
-
-# WS2812B is powered directly from 5V (no switched ext-power rail).
-# ZMK defaults these to y (Kconfig.defaults); disable them or the build
-# fails on the missing zmk,ext-power-generic node (P0.13 is the CHRG input).
-CONFIG_ZMK_EXT_POWER=n
-CONFIG_ZMK_RGB_UNDERGLOW_EXT_POWER=n
-
-# Start underglow off; status_led.c turns it on only when needed.
-CONFIG_ZMK_RGB_UNDERGLOW_ON_START=n
-
-# --- RTT debug logging (bringup) ---
+# RTT debug logging
 CONFIG_USE_SEGGER_RTT=y
 CONFIG_LOG_BACKEND_RTT=y
 CONFIG_LOG_BACKEND_RTT_MODE_DROP=y
 CONFIG_LOG_DEFAULT_LEVEL=3
-CONFIG_ZMK_BLE=n
-CONFIG_BT=n
