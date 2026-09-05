@@ -40,7 +40,7 @@
 };
 
 &i2c0 {
-    status = "okay";
+    status = "disabled";
     pcf8574: gpio@20 {
         compatible = "nxp,pcf8574";
         reg = <0x20>;
