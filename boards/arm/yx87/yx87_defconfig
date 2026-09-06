@@ -34,3 +34,6 @@ CONFIG_LOG_DEFAULT_LEVEL=3
 
 # USB HID must be enabled for a pure-USB keyboard (was dropped with ZMK_BLE=n)
 CONFIG_ZMK_USB=y
+
+# ---- DIAG LED (bringup-diag-led): light T80 WS2812 on boot ----
+CONFIG_LED_STRIP=y
