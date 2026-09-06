@@ -42,3 +42,6 @@ CONFIG_SPI=y
 
 # ---- CLOCK FIX (bringup-clock-rc): E73 module may lack 32.768kHz XTAL ----
 CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
+
+# LED strip must init AFTER SPI (same-default-90 ordering bug)
+CONFIG_LED_STRIP_INIT_PRIORITY=95
