@@ -1,8 +1,8 @@
 /*
- * yx87 bringup diagnostic v2:
- *  1. Solid BLUE on-board LED (P0.15, plain GPIO - no SPI dependency)
- *     => proves the code runs and GPIO works
- *  2. Delayed RED on T80 WS2812 (SPI1/P0.08), retried after 1s
+ * yx87 bringup diagnostic v3:
+ *  1. BLINK BLUE on-board LED (P0.15, plain GPIO - no SPI dependency),
+ *     toggling every 500ms => polarity-independent, proves code runs
+ *  2. RED on T80 WS2812 (SPI1/P0.08), retried at 1s/2s/3s
  *     => proves SPI + WS2812 path (or exposes init-order issue)
  */
 #include <zephyr/kernel.h>
@@ -16,9 +16,21 @@ LOG_MODULE_REGISTER(yx87_diag, LOG_LEVEL_INF);
 #define BLUE_LED_NODE DT_NODELABEL(gpio0)
 #define BLUE_LED_PIN 15
 
+static void diag_blue_work_handler(struct k_work *work);
+K_WORK_DELAYABLE_DEFINE(diag_blue_work, diag_blue_work_handler);
 static void diag_red_work_handler(struct k_work *work);
-
 K_WORK_DELAYABLE_DEFINE(diag_red_work, diag_red_work_handler);
+
+static int blue_state;
+
+static void diag_blue_work_handler(struct k_work *work)
+{
+	const struct device *gpio0 = DEVICE_DT_GET(BLUE_LED_NODE);
+
+	blue_state = !blue_state;
+	gpio_pin_set(gpio0, BLUE_LED_PIN, blue_state);
+	k_work_schedule(&diag_blue_work, K_MSEC(500));
+}
 
 static void diag_red_work_handler(struct k_work *work)
 {
@@ -40,18 +52,20 @@ static void diag_red_work_handler(struct k_work *work)
 
 static int diag_led_init(void)
 {
-	/* 1. Solid blue on-board LED via plain GPIO */
+	/* 1. Blink blue on-board LED: toggle every 500ms forever */
 	const struct device *gpio0 = DEVICE_DT_GET(BLUE_LED_NODE);
 
 	if (device_is_ready(gpio0)) {
 		gpio_pin_configure(gpio0, BLUE_LED_PIN, GPIO_OUTPUT_ACTIVE);
-		gpio_pin_set(gpio0, BLUE_LED_PIN, 1);
-		LOG_INF("diag: blue LED ON");
+		blue_state = 0;
+		gpio_pin_set(gpio0, BLUE_LED_PIN, 0);
+		k_work_schedule(&diag_blue_work, K_MSEC(500));
+		LOG_INF("diag: blue LED blinking ON");
 	} else {
 		LOG_ERR("diag: gpio0 not ready");
 	}
 
-	/* 2. Try T80 red now, and again after 1s (drivers all up by then) */
+	/* 2. Try T80 red now + retry at 1s/2s/3s */
 	const struct device *strip = DEVICE_DT_GET(DT_NODELABEL(led_strip));
 	if (device_is_ready(strip)) {
 		struct led_rgb px = {
@@ -66,6 +80,8 @@ static int diag_led_init(void)
 	}
 
 	k_work_schedule(&diag_red_work, K_SECONDS(1));
+	k_work_schedule(&diag_red_work, K_SECONDS(2));
+	k_work_schedule(&diag_red_work, K_SECONDS(3));
 	return 0;
 }
 
