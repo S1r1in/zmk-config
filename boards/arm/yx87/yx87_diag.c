@@ -1,6 +1,6 @@
 /*
- * yx87 bringup diagnostic v3:
- *  1. BLINK BLUE on-board LED (P0.15, plain GPIO - no SPI dependency),
+ * yx87 bringup diagnostic v4:
+ *  1. BLINK BLUE on-board LED (P1.06 = E73 pin42, plain GPIO - no SPI dependency),
  *     toggling every 500ms => polarity-independent, proves code runs
  *  2. RED on T80 WS2812 (SPI1/P0.08), retried at 1s/2s/3s
  *     => proves SPI + WS2812 path (or exposes init-order issue)
@@ -13,8 +13,8 @@
 
 LOG_MODULE_REGISTER(yx87_diag, LOG_LEVEL_INF);
 
-#define BLUE_LED_NODE DT_NODELABEL(gpio0)
-#define BLUE_LED_PIN 15
+#define BLUE_LED_NODE DT_NODELABEL(gpio1)
+#define BLUE_LED_PIN 6   /* E73 pin42 = P1.06 (was wrongly P0.15) */
 
 static void diag_blue_work_handler(struct k_work *work);
 K_WORK_DELAYABLE_DEFINE(diag_blue_work, diag_blue_work_handler);
@@ -25,10 +25,10 @@ static int blue_state;
 
 static void diag_blue_work_handler(struct k_work *work)
 {
-	const struct device *gpio0 = DEVICE_DT_GET(BLUE_LED_NODE);
+	const struct device *gpio1 = DEVICE_DT_GET(BLUE_LED_NODE);
 
 	blue_state = !blue_state;
-	gpio_pin_set(gpio0, BLUE_LED_PIN, blue_state);
+	gpio_pin_set(gpio1, BLUE_LED_PIN, blue_state);
 	k_work_schedule(&diag_blue_work, K_MSEC(500));
 }
 
@@ -53,16 +53,16 @@ static void diag_red_work_handler(struct k_work *work)
 static int diag_led_init(void)
 {
 	/* 1. Blink blue on-board LED: toggle every 500ms forever */
-	const struct device *gpio0 = DEVICE_DT_GET(BLUE_LED_NODE);
+	const struct device *gpio1 = DEVICE_DT_GET(BLUE_LED_NODE);
 
-	if (device_is_ready(gpio0)) {
-		gpio_pin_configure(gpio0, BLUE_LED_PIN, GPIO_OUTPUT_ACTIVE);
+	if (device_is_ready(gpio1)) {
+		gpio_pin_configure(gpio1, BLUE_LED_PIN, GPIO_OUTPUT_ACTIVE);
 		blue_state = 0;
-		gpio_pin_set(gpio0, BLUE_LED_PIN, 0);
+		gpio_pin_set(gpio1, BLUE_LED_PIN, 0);
 		k_work_schedule(&diag_blue_work, K_MSEC(500));
 		LOG_INF("diag: blue LED blinking ON");
 	} else {
-		LOG_ERR("diag: gpio0 not ready");
+		LOG_ERR("diag: gpio1 not ready");
 	}
 
 	/* 2. Try T80 red now + retry at 1s/2s/3s */
